@@ -1,18 +1,14 @@
 import React, { useState } from 'react'
 
-import {
-  Select, FormControl, MenuItem,
-  InputLabel, TextField, Button,
-  CircularProgress, Card, CardContent,
-  Typography, Radio, Grid,
-  RadioGroup, FormControlLabel
-} from "@material-ui/core"
+import { TextField, Button, CircularProgress, Grid } from "@material-ui/core"
 import { Alert } from "@material-ui/lab"
 /* import { SkipPreviousRounded, SkipNextRounded } from "@material-ui/icons" */
 
 import './App.css'
 import "awesome-react-steps/lib/css/arrows.css"
 import axios from './axios'
+import Dropdown from './components/Dropdown'
+import Question from './components/Question'
 
 function App() {
   const [totalQuestion, setTotalQuestion] = useState(10)
@@ -54,10 +50,7 @@ function App() {
   const handleQuestionRetrieve = async () => {
     await axios.get("/", {
       params: {
-        amount: totalQuestion,
-        category: selectedCategory === "any" ? "" : selectedCategory,
-        difficulty: selectedDifficulty === "any" ? "" : selectedDifficulty,
-        type: selectedType === "any" ? "" : selectedType
+        amount: totalQuestion, category: selectedCategory === "any" ? "" : selectedCategory, difficulty: selectedDifficulty === "any" ? "" : selectedDifficulty, type: selectedType === "any" ? "" : selectedType
       }
     })
       .then(response => response.data.results)
@@ -86,11 +79,7 @@ function App() {
       setAllQuestionAnswered(false)
       return
     }
-    answers.forEach(({ correctAnswer, userAnswer }) => {
-      if (correctAnswer === userAnswer) {
-        setTotalPoint(prevState => prevState + pointPerQuestion)
-      }
-    })
+    answers.forEach(({ correctAnswer, userAnswer }) => (correctAnswer === userAnswer) ? setTotalPoint(prevState => prevState + pointPerQuestion) : null)
     handleGoBack()
   }
 
@@ -98,161 +87,46 @@ function App() {
     <div className="app">
       <div className="app__header">
         <h1 className="text-align-center">Welcome to the Quiz</h1>
-        <Button
-          className="app__goBack"
-          variant="contained"
-          color="secondary"
-          onClick={handleGoBack}>
-          Go Back</Button>
+        <Button className="app__goBack" variant="contained" color="secondary" onClick={handleGoBack}>Go Back</Button>
       </div>
-      {
-        totalPoint !== 0 ? (
-          <div className="app__point">
-            You get totally <span className="app__score"> {totalPoint} </span> point
-          </div>
+      {totalPoint !== 0
+        ? (<div className="app__point">You get totally <span className="app__score"> {totalPoint} </span> point</div>)
+        : (
+          !questionsRetrieved
+            ? (<div className="app__point my text-align-center">This project doesnt store data permanantly.<br />The only purpose is to learn React.js and how axios works</div>)
+            : ("")
         )
-          : (
-            !questionsRetrieved ? (
-              <div className="app__point my text-align-center">
-                This project doesnt store data permanantly.
-                <br />
-              The only purpose is to learn React.js and how axios works
-              </div>
-            ) : ("")
-          )
       }
       <div className={`app__information ${questionsRetrieved ? "questions-ready" : "questions-not-ready"}`}>
         <div className="app__selections">
-          <FormControl >
-            <InputLabel className="app__label">Select Category</InputLabel>
-            <Select
-              value={selectedCategory}
-              onChange={handleCategoryChange}>
-              {categories.map(category =>
-                <MenuItem
-                  key={category.key}
-                  value={category.key}>
-                  {category.value}
-                </MenuItem>
-              )}
-            </Select>
-          </FormControl>
-          <FormControl >
-            <InputLabel className="app__label">Select Difficulty</InputLabel>
-            <Select
-              value={selectedDifficulty}
-              label="Select the Number of Question"
-              onChange={handleDifficultyChange}>
-              {difficulties.map(difficulty =>
-                <MenuItem
-                  key={difficulty.key}
-                  value={difficulty.key}>
-                  {difficulty.value}
-                </MenuItem>
-              )}
-            </Select>
-          </FormControl>
-          <FormControl >
-            <InputLabel className="app__label">Select Question Type</InputLabel>
-            <Select
-              value={selectedType}
-              onChange={handleTypeChange}>
-              {types.map(type =>
-                <MenuItem
-                  key={type.key}
-                  value={type.key}>
-                  {type.value}
-                </MenuItem>
-              )}
-            </Select>
-          </FormControl>
+          <Dropdown title="Select Category" selected={selectedCategory} list={categories} onChange={handleCategoryChange} />
+          <Dropdown title="Select Difficulty" selected={selectedDifficulty} list={difficulties} onChange={handleDifficultyChange} />
+          <Dropdown title="Select Question Type" selected={selectedType} list={types} onChange={handleTypeChange} />
         </div>
         <div className="app__input">
-          <TextField
-            fullWidth
-            variant="outlined"
-            value={totalQuestion}
-            label="How many questions do you want?"
-            onChange={handleTotalQuestionChange} />
+          <TextField fullWidth variant="outlined" value={totalQuestion} label="How many questions do you want?" onChange={handleTotalQuestionChange} />
         </div>
         <div className="app__submit">
-          <Button
-            className="app__getQuestions"
-            variant="contained"
-            color="secondary"
-            onClick={handleQuestionRetrieve}>
-            Get Question</Button>
+          <Button className="app__getQuestions" variant="contained" color="secondary" onClick={handleQuestionRetrieve}>Get Question</Button>
         </div>
 
-        {loading ? (
-          <div className="app__progressBar">
-            <CircularProgress color="secondary" />
-            <div>Questions are being retrieved</div>
-          </div>
-        ) : ""}
+        {loading ? (<div className="app__progressBar"><CircularProgress color="secondary" /><div>Questions are being retrieved</div></div>) : ("")}
       </div>
 
-      {!allQuestionAnswered ? (
-        <Alert
-          className="mb"
-          severity="warning">Please Answer all the Question</Alert>
-      ) : ("")}
-
+      {!allQuestionAnswered ? (<Alert className="mb" severity="warning">Please Answer all the Question</Alert>) : ("")}
       {questionsRetrieved ? (
         <div>
-          <Grid
-            container
-            spacing={3}>
+          <Grid container spacing={3}>
             {questions && (
               questions.map(({ question, correct_answer, incorrect_answers }, index) => (
-                <Grid
-                  key={index}
-                  item
-                  xs={12}
-                  sm={12}
-                  md={6}
-                  height="100%">
-                  <Card className="app__card">
-                    <CardContent>
-                      <Typography color="textSecondary" gutterBottom>Question {index + 1}</Typography>
-                      <Typography variant="h5" component="h2">
-                        <div dangerouslySetInnerHTML={{ __html: question }}></div>
-                      </Typography>
-                    </CardContent>
-                    <CardContent>
-                      <RadioGroup>
-                        <FormControlLabel
-                          value={correct_answer}
-                          label={correct_answer}
-                          labelPlacement="end"
-                          control={<Radio />}
-                          onChange={e => handleAnswerQuestion(index, e.target.value)} />
-                        {incorrect_answers.map((incorrectAnswer, indexInner) =>
-                          <FormControlLabel
-                            key={indexInner}
-                            value={incorrectAnswer}
-                            label={incorrectAnswer}
-                            labelPlacement="end"
-                            control={<Radio />}
-                            onChange={e => handleAnswerQuestion(index, e.target.value)} />
-                        )}
-                      </RadioGroup>
-                    </CardContent>
-                  </Card>
+                <Grid key={index} item xs={12} sm={12} md={6} height="100%">
+                  <Question index={index} question={question} correctAnswer={correct_answer} incorrectAnswers={incorrect_answers} onChange={e => handleAnswerQuestion(index, e.target.value)} />
                 </Grid>
-              ))
-            )}
+              )))}
           </Grid>
-          <Button
-            className="app__sendAnswers"
-            variant="contained"
-            color="secondary"
-            fullWidth
-            onClick={handleAnswerSubmit}>
-            Answer</Button>
+          <Button className="app__sendAnswers" variant="contained" color="secondary" fullWidth onClick={handleAnswerSubmit}>Answer</Button>
         </div>
-      ) : ""
-      }
+      ) : ("")}
     </div>
   );
 }
