@@ -6,6 +6,10 @@
   margin-bottom: 10px;
 }
 
+.mr {
+  margin-right: 10px;
+}
+
 .my {
   margin: 20px 0;
 }
@@ -110,6 +114,11 @@
   align-items: center;
   text-transform: uppercase;
   font-size: 2rem;
+}
+
+.MuiSvgIcon-root.mr {
+  fill: green !important;
+  font-size: 2em !important;
 }
 
 @media (max-width: 1130px) {

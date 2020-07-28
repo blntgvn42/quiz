@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 
 import { TextField, Button, CircularProgress, Grid } from "@material-ui/core"
 import { Alert } from "@material-ui/lab"
-/* import { SkipPreviousRounded, SkipNextRounded } from "@material-ui/icons" */
+import { Done } from "@material-ui/icons"
 
 import './App.css'
 import "awesome-react-steps/lib/css/arrows.css"
@@ -48,6 +48,7 @@ function App() {
   const handleTypeChange = (event) => setSelectedType(event.target.value)
   const handleTotalQuestionChange = (event) => setTotalQuestion(Number(event.target.value))
   const handleQuestionRetrieve = async () => {
+    if (totalQuestion === "" || totalQuestion === 0) return
     await axios.get("/", {
       params: {
         amount: totalQuestion, category: selectedCategory === "any" ? "" : selectedCategory, difficulty: selectedDifficulty === "any" ? "" : selectedDifficulty, type: selectedType === "any" ? "" : selectedType
@@ -90,7 +91,7 @@ function App() {
         <Button className="app__goBack" variant="contained" color="secondary" onClick={handleGoBack}>Go Back</Button>
       </div>
       {totalPoint !== 0
-        ? (<div className="app__point">You get totally <span className="app__score"> {totalPoint} </span> point</div>)
+        ? (<div className="app__point"><Done className="mr" />You get totally <span className="app__score"> {totalPoint} </span> point</div>)
         : (
           !questionsRetrieved
             ? (<div className="app__point my text-align-center">This project doesnt store data permanantly.<br />The only purpose is to learn React.js and how axios works</div>)
@@ -104,7 +105,7 @@ function App() {
           <Dropdown title="Select Question Type" selected={selectedType} list={types} onChange={handleTypeChange} />
         </div>
         <div className="app__input">
-          <TextField fullWidth variant="outlined" value={totalQuestion} label="How many questions do you want?" onChange={handleTotalQuestionChange} />
+          <TextField fullWidth type="number" variant="outlined" value={totalQuestion} label="How many questions do you want?" onChange={handleTotalQuestionChange} />
         </div>
         <div className="app__submit">
           <Button className="app__getQuestions" variant="contained" color="secondary" onClick={handleQuestionRetrieve}>Get Question</Button>
@@ -114,20 +115,22 @@ function App() {
       </div>
 
       {!allQuestionAnswered ? (<Alert className="mb" severity="warning">Please Answer all the Question</Alert>) : ("")}
-      {questionsRetrieved ? (
-        <div>
-          <Grid container spacing={3}>
-            {questions && (
-              questions.map(({ question, correct_answer, incorrect_answers }, index) => (
-                <Grid key={index} item xs={12} sm={12} md={6} height="100%">
-                  <Question index={index} question={question} correctAnswer={correct_answer} incorrectAnswers={incorrect_answers} onChange={e => handleAnswerQuestion(index, e.target.value)} />
-                </Grid>
-              )))}
-          </Grid>
-          <Button className="app__sendAnswers" variant="contained" color="secondary" fullWidth onClick={handleAnswerSubmit}>Answer</Button>
-        </div>
-      ) : ("")}
-    </div>
+      {
+        questionsRetrieved ? (
+          <div>
+            <Grid container spacing={3}>
+              {questions && (
+                questions.map(({ question, correct_answer, incorrect_answers }, index) => (
+                  <Grid key={index} item xs={12} sm={12} md={6} height="100%">
+                    <Question index={index} question={question} correctAnswer={correct_answer} incorrectAnswers={incorrect_answers} onChange={e => handleAnswerQuestion(index, e.target.value)} />
+                  </Grid>
+                )))}
+            </Grid>
+            <Button className="app__sendAnswers" variant="contained" color="secondary" fullWidth onClick={handleAnswerSubmit}>Answer</Button>
+          </div>
+        ) : ("")
+      }
+    </div >
   );
 }
 
